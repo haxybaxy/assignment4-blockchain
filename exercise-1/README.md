@@ -123,11 +123,12 @@ Things that *didn't* need to change but matter:
    # browser → http://127.0.0.1:5001 → buy Sticker → flash message contains tx URL
    ```
 
-10. **Paste your URLs below** as proof of homework:
+10. **Live deployment (proof of homework):**
 
 ```
-Sepolia contract:  https://sepolia.etherscan.io/address/<TODO>
-Verify (optional): https://sepolia.etherscan.io/address/<TODO>#code
-Purchase tx 1:     https://sepolia.etherscan.io/tx/<TODO>
-Purchase tx 2:     https://sepolia.etherscan.io/tx/<TODO>
+Deployer wallet:    0x93e02d73E55a669e0555C89A4DDc850E4d64c3B6
+Sepolia contract:   https://sepolia.etherscan.io/address/0xa46Bb9057E52013FaB138EF96f3c943421130C9F
+Verified source:    https://sepolia.etherscan.io/address/0xa46Bb9057E52013FaB138EF96f3c943421130C9F#code
+Purchase tx 1 (Sticker):    https://sepolia.etherscan.io/tx/0x9cd7bd9bba7a907e852b99e61d44978ce233ddae8ff08f9137338bc471499863
+Purchase tx 2 (Pin Badge):  https://sepolia.etherscan.io/tx/0x0cf269cd8398d948c873cca7d384f3f732f84777c7d8b64e52ddd125e6529267
 ```
