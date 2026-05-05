@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}My tickets{% endblock %}
+{% block content %}
+<h1>My tickets</h1>
+<p class="lede">
+  Each ticket is an ERC-721 NFT. Free transfers use the standard <code>transferFrom</code>.
+  Resale is a two-step ERC-721 marketplace flow: <strong>(1) approve the contract</strong>,
+  then <strong>(2) list at a price ≤ 2× the original</strong>.
+</p>
+
+{% if not tickets %}
+  <p>You don't own any tickets. Mint one from the <a href="{{ url_for('index') }}">events page</a>.</p>
+{% else %}
+  <div class="grid">
+    {% for t in tickets %}
+      <article class="card">
+        <header>
+          <h2>{{ t.eventName }} <small class="muted">#{{ t.tokenId }}</small></h2>
+          {% if t.listed %}<span class="badge badge-success">LISTED</span>{% endif %}
+        </header>
+        <dl>
+          <dt>Seat</dt><dd>{{ t.seatNumber }}</dd>
+          <dt>Original price</dt><dd>{{ '%.4f' % t.originalPriceEth }} ETH</dd>
+          <dt>Resale cap</dt><dd>{{ '%.4f' % t.capEth }} ETH (2× face)</dd>
+          {% if t.listed %}<dt>Listed at</dt><dd><strong>{{ '%.4f' % t.listingPriceEth }} ETH</strong></dd>{% endif %}
+          <dt>Marketplace approved</dt><dd>{% if t.marketplaceApproved %}yes{% else %}no{% endif %}</dd>
+          <dt>tokenURI</dt><dd><a href="{{ t.tokenURI }}" target="_blank"><small>{{ t.tokenURI }}</small></a></dd>
+          {% if t.metadata %}
+            {% if t.metadata.date %}<dt>Date</dt><dd>{{ t.metadata.date }}</dd>{% endif %}
+            {% if t.metadata.venue %}<dt>Venue</dt><dd>{{ t.metadata.venue }}</dd>{% endif %}
+          {% endif %}
+        </dl>
+
+        <div class="actions-grid">
+          <form method="post" action="{{ url_for('transfer', token_id=t.tokenId) }}">
+            <input name="to" placeholder="0x… recipient" required pattern="0x[0-9a-fA-F]{40}" />
+            <button type="submit">Transfer (free)</button>
+          </form>
+
+          {% if not t.marketplaceApproved and not t.listed %}
+            <form method="post" action="{{ url_for('approve', token_id=t.tokenId) }}">
+              <button type="submit">① Approve marketplace</button>
+            </form>
+          {% endif %}
+
+          {% if t.marketplaceApproved and not t.listed %}
+            <form method="post" action="{{ url_for('list_for_resale', token_id=t.tokenId) }}">
+              <input name="priceEth" type="number" step="0.0001" min="0.0001" max="{{ '%.4f' % t.capEth }}" placeholder="Price ETH ≤ {{ '%.4f' % t.capEth }}" required />
+              <button type="submit">② List for resale</button>
+            </form>
+          {% endif %}
+
+          {% if t.listed %}
+            <form method="post" action="{{ url_for('cancel', token_id=t.tokenId) }}">
+              <button type="submit">Cancel listing</button>
+            </form>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

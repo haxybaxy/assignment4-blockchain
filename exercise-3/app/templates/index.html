@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Events &amp; resale market{% endblock %}
+{% block content %}
+<h1>Events</h1>
+<p class="lede">Pick an event and mint a ticket. Each ticket is an ERC-721 NFT with on-chain ownership and an off-chain metadata JSON.</p>
+
+<div class="grid">
+  {% for e in events %}
+    <article class="card {% if not e.active %}card-inactive{% endif %}">
+      <header><h2>{{ e.name }}</h2><span class="price">{{ '%.4f' % e.priceEth }} ETH</span></header>
+      <dl>
+        <dt>Event ID</dt><dd>#{{ e.id }}</dd>
+        <dt>Sold</dt><dd>{{ e.sold }} / {{ e.maxSupply }}</dd>
+        <dt>Status</dt>
+        <dd>{% if e.active %}On sale{% else %}<span class="badge">PAUSED</span>{% endif %}</dd>
+      </dl>
+      {% if e.active and e.sold < e.maxSupply %}
+        <form method="post" action="{{ url_for('buy', event_id=e.id) }}">
+          <button type="submit">Mint ticket NFT</button>
+        </form>
+      {% else %}
+        <button type="button" disabled>{% if e.sold >= e.maxSupply %}SOLD OUT{% else %}Paused{% endif %}</button>
+      {% endif %}
+    </article>
+  {% endfor %}
+</div>
+
+<h1 style="margin-top:2rem">Resale market</h1>
+<p class="lede">
+  Tickets listed by other users. The contract enforces a 2× face-value cap and takes a 2% protocol fee.
+</p>
+{% if not listings %}
+  <p>No tickets currently listed. Buy one above and try listing it from the My tickets page.</p>
+{% else %}
+  <div class="grid">
+    {% for t in listings %}
+      <article class="card">
+        <header>
+          <h2>{{ t.eventName }} <small class="muted">#{{ t.tokenId }}</small></h2>
+          <span class="price">{{ '%.4f' % t.listingPriceEth }} ETH</span>
+        </header>
+        <dl>
+          <dt>Seat</dt><dd>{{ t.seatNumber }}</dd>
+          <dt>Original</dt><dd>{{ '%.4f' % t.originalPriceEth }} ETH</dd>
+          <dt>Cap (2×)</dt><dd>{{ '%.4f' % t.capEth }} ETH</dd>
+          <dt>Seller</dt><dd><code>{{ t.owner[:14] }}…</code></dd>
+          {% if t.metadata %}
+            {% if t.metadata.image %}<dt>Image</dt><dd><a href="{{ t.metadata.image }}" target="_blank">link</a></dd>{% endif %}
+            {% if t.metadata.date %}<dt>Date</dt><dd>{{ t.metadata.date }}</dd>{% endif %}
+            {% if t.metadata.venue %}<dt>Venue</dt><dd>{{ t.metadata.venue }}</dd>{% endif %}
+          {% endif %}
+        </dl>
+        {% if t.owner|lower == selected_account|lower %}
+          <button type="button" disabled>Your own listing</button>
+        {% else %}
+          <form method="post" action="{{ url_for('buy_resale', token_id=t.tokenId) }}">
+            <button type="submit">Buy from resale</button>
+          </form>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

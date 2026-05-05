@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}My points — {{ token_symbol }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>My balance</h1>
+  <p class="big-number">{{ balance }} <small>{{ token_symbol }}</small></p>
+  <p class="lede">As wallet <code>{{ my_address }}</code>.</p>
+</section>
+
+<section class="panel">
+  <h2>Send points</h2>
+  <form method="post" action="{{ url_for('transfer') }}">
+    <label>Recipient address
+      <input name="to" placeholder="0x…" required pattern="0x[0-9a-fA-F]{40}" />
+    </label>
+    <label>Amount
+      <input name="amount" type="number" min="1" max="{{ balance }}" value="1" required />
+    </label>
+    <button type="submit">Send</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Recent activity</h2>
+  {% if not transfers %}
+    <p class="muted">No transfers involving this wallet in the recent block window.</p>
+  {% else %}
+    <table class="data">
+      <thead>
+        <tr><th>Block</th><th>Direction</th><th>Counterparty</th><th>Amount</th><th>Tx</th></tr>
+      </thead>
+      <tbody>
+        {% for t in transfers %}
+          {% set incoming = t.to|lower == my_address|lower %}
+          <tr>
+            <td>#{{ t.blockNumber }}</td>
+            <td>{% if incoming %}<span class="badge badge-success">IN</span>{% else %}<span class="badge">OUT</span>{% endif %}</td>
+            <td><code>{{ (t['from'] if not incoming else t['to'])[:14] }}…</code></td>
+            <td><strong>{% if incoming %}+{% else %}−{% endif %}{{ t.value }}</strong></td>
+            <td><code>{{ t.txHash[:14] }}…</code></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</section>
+{% endblock %}

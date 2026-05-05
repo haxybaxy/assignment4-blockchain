@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Admin — {{ token_symbol }}{% endblock %}
+{% block content %}
+<h1>Mint loyalty points</h1>
+<p class="lede">
+  Only the contract owner can call <code>mint()</code>. Pick a customer wallet, decide how many
+  points to award, and submit. The contract emits both the standard <code>Transfer</code> event
+  (from the zero address) <em>and</em> a custom <code>LoyaltyMinted</code> event.
+</p>
+
+<section class="panel">
+  <form method="post" action="{{ url_for('admin_mint') }}">
+    <label>Customer address
+      <input name="to" placeholder="0x…" required pattern="0x[0-9a-fA-F]{40}" />
+    </label>
+    <label>Amount (whole points)
+      <input name="amount" type="number" min="1" value="10" required />
+    </label>
+    <button type="submit">Mint</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Pre-loaded test wallets</h2>
+  <p class="lede">Copy any address below into the form above to award them points:</p>
+  <table class="data">
+    <thead><tr><th>#</th><th>Address</th><th>Current balance</th><th>Role</th></tr></thead>
+    <tbody>
+      {% for a in account_options %}
+        <tr>
+          <td>{{ a.index }}</td>
+          <td><code>{{ a.address }}</code></td>
+          <td>{{ a.balanceLoyal }} {{ token_symbol }}</td>
+          <td>{% if a.isOwner %}OWNER (mints from here){% else %}customer{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

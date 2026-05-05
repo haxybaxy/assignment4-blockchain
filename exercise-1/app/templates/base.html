@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}Vending Machine{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <a href="{{ url_for('index') }}">🥤 Vending Machine dApp</a>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('index') }}">Products</a>
+      <a href="{{ url_for('my_items') }}">My Items</a>
+      {% if is_owner %}
+        <a href="{{ url_for('admin_panel') }}">Admin</a>
+      {% endif %}
+    </nav>
+    <div class="net-badge {% if is_public_chain %}net-public{% else %}net-local{% endif %}">
+      {{ network_name }} · chain {{ chain_id }}
+    </div>
+    <form class="account-picker" method="post" action="{{ url_for('switch_account') }}">
+      <label for="account">Wallet</label>
+      <select id="account" name="account" {% if is_public_chain %}disabled{% else %}onchange="this.form.submit()"{% endif %}>
+        {% for a in account_options %}
+          <option value="{{ a.address }}" {% if a.address == selected_account %}selected{% endif %}>
+            #{{ a.index }} {{ a.address[:8] }}… ({{ '%.4f' % a.balanceEth }} ETH){% if a.isOwner %} ★{% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+  </header>
+
+  <aside class="meta">
+    <div>
+      Contract:
+      {% if contract_url %}
+        <a href="{{ contract_url }}" target="_blank" rel="noopener"><code>{{ contract_address }}</code></a>
+      {% else %}
+        <code>{{ contract_address }}</code>
+      {% endif %}
+    </div>
+    <div>Owner (★): <code>{{ owner_address }}</code></div>
+    <div>You: <code>{{ selected_account }}</code>{% if is_owner %} <span class="badge">OWNER</span>{% endif %}</div>
+  </aside>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for category, msg in messages %}
+          <div class="flash flash-{{ category }}">{{ msg | urlize(target='_blank') }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>

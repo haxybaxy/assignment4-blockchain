@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Admin — Tickets{% endblock %}
+{% block content %}
+<h1>Admin panel</h1>
+<p class="lede">Owner-only: create new events and withdraw protocol fees.</p>
+
+<section class="panel">
+  <h2>Contract balance</h2>
+  <p><strong>{{ '%.6f' % contract_balance_eth }} ETH</strong> held by the contract (primary sales + resale fees).</p>
+  <form method="post" action="{{ url_for('admin_withdraw') }}">
+    <button type="submit">Withdraw all to owner</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Create event</h2>
+  <form method="post" action="{{ url_for('admin_create_event') }}">
+    <label>Name <input name="name" required /></label>
+    <label>Price (ETH) <input name="priceEth" type="number" step="0.0001" min="0.0001" required /></label>
+    <label>Max supply <input name="maxSupply" type="number" min="1" required /></label>
+    <label style="flex:1 1 100%">Base URI (must end with /)
+      <input name="baseURI" type="url" placeholder="https://demo/metadata/event-slug/" required />
+    </label>
+    <button type="submit">Create</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Existing events</h2>
+  <table class="data">
+    <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Sold</th><th>Active</th></tr></thead>
+    <tbody>
+      {% for e in events %}
+        <tr>
+          <td>#{{ e.id }}</td>
+          <td>{{ e.name }}</td>
+          <td>{{ '%.4f' % e.priceEth }} ETH</td>
+          <td>{{ e.sold }}/{{ e.maxSupply }}</td>
+          <td>{{ 'yes' if e.active else 'no' }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
