@@ -176,7 +176,11 @@ def _read_metadata(uri: str) -> dict:
 
 @app.get("/metadata/<slug>/<int:token_id>.json")
 def metadata(slug: str, token_id: int):
-    return jsonify(_build_metadata(slug, token_id))
+    try:
+        return jsonify(_build_metadata(slug, token_id))
+    except Exception as e:
+        # Most common cause: token hasn't been minted yet (ERC721NonexistentToken).
+        return jsonify({"error": "token not found", "tokenId": token_id, "detail": str(e)[:200]}), 404
 
 
 @app.get("/")
@@ -312,6 +316,28 @@ def admin_create_event():
         _flash_tx(f"Created event '{name}'", r)
     except Exception as e:
         flash(f"Create failed: {_reason(e)}", "error")
+    return redirect(url_for("admin_panel"))
+
+
+@app.post("/admin/mint")
+def admin_mint():
+    if not client.is_owner(_selected_account()):
+        flash("Only the owner can mint comp tickets.", "error")
+        return redirect(url_for("index"))
+    to = request.form.get("to", "").strip()
+    try:
+        event_id = int(request.form.get("eventId", "-1"))
+    except ValueError:
+        flash("Invalid event id.", "error")
+        return redirect(url_for("admin_panel"))
+    if not to or event_id < 0:
+        flash("Recipient and event id required.", "error")
+        return redirect(url_for("admin_panel"))
+    try:
+        r = client.admin_mint(_selected_account(), event_id, to)
+        _flash_tx(f"Comp ticket minted for event #{event_id} → {to[:10]}…", r)
+    except Exception as e:
+        flash(f"Mint failed: {_reason(e)}", "error")
     return redirect(url_for("admin_panel"))
 
 

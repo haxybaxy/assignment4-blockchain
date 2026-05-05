@@ -26,6 +26,20 @@
 </section>
 
 <section class="panel">
+  <h2>Admin-mint a comp ticket (free)</h2>
+  <p class="lede">Gift a ticket without payment — for press, VIPs, or giveaways. Counts against the event's max supply.</p>
+  <form method="post" action="{{ url_for('admin_mint') }}">
+    <label>Event ID
+      <input name="eventId" type="number" min="0" required />
+    </label>
+    <label>Recipient
+      <input name="to" placeholder="0x…" required pattern="0x[0-9a-fA-F]{40}" />
+    </label>
+    <button type="submit">Mint comp ticket</button>
+  </form>
+</section>
+
+<section class="panel">
   <h2>Existing events</h2>
   <table class="data">
     <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Sold</th><th>Active</th></tr></thead>

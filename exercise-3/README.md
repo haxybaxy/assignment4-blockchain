@@ -21,10 +21,15 @@ exercise-3/
     └── static/style.css
 ```
 
-## Test cases (18 tests)
+## Test cases (24 tests)
 
 | describe                                      | it                                                                                  |
 |-----------------------------------------------|-------------------------------------------------------------------------------------|
+| admin mint (gift / comp tickets)              | owner can `adminMint(eventId, to)`; emits TicketMinted with pricePaid = 0           |
+|                                               | works even when event is paused (pre-mint comps before sales open)                  |
+|                                               | counts against maxSupply (venue capacity respected)                                 |
+|                                               | non-owner cannot adminMint (`OwnableUnauthorizedAccount`)                           |
+|                                               | rejects zero-address recipient and unknown event                                    |
 | metadata + access control                     | name = "Event Ticket", symbol = "TIX"                                               |
 |                                               | supports ERC-721 / Metadata / Enumerable interfaces (`supportsInterface`)            |
 |                                               | createEvent rejects empty name / 0 price / 0 supply / empty baseURI                  |
@@ -50,7 +55,7 @@ npm install
 npx hardhat test
 ```
 
-All 18 pass.
+All 24 pass.
 
 ## Design choices
 

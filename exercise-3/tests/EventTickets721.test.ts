@@ -61,6 +61,63 @@ describe("EventTickets721", () => {
     });
   });
 
+  describe("admin mint (gift / comp tickets)", () => {
+    it("owner can adminMint to any address; pricePaid logged as 0; seat counter advances", async () => {
+      const c = await deployWithEvent();
+      const [, alice] = await ethers.getSigners();
+      await expect(c.adminMint(0, alice.address))
+        .to.emit(c, "Transfer")
+        .withArgs(ethers.ZeroAddress, alice.address, 0n)
+        .and.to.emit(c, "TicketMinted")
+        .withArgs(0n, 0n, alice.address, 1n, 0n);
+
+      expect(await c.ownerOf(0)).to.equal(alice.address);
+      expect(await c.balanceOf(alice.address)).to.equal(1n);
+      expect(await c.seatNumberOf(0)).to.equal(1n);
+      // Admin gifts still respect originalPrice mapping for the resale cap.
+      expect(await c.originalPriceOf(0)).to.equal(PRICE);
+    });
+
+    it("works even when the event is paused (admin can pre-mint comps before sales open)", async () => {
+      const c = await deployWithEvent();
+      const [, alice] = await ethers.getSigners();
+      await c.setEventActive(0, false);
+      await c.adminMint(0, alice.address);
+      expect(await c.ownerOf(0)).to.equal(alice.address);
+    });
+
+    it("counts against maxSupply (cannot exceed venue capacity)", async () => {
+      const c = await deployWithEvent(2n);
+      const [, alice] = await ethers.getSigners();
+      await c.adminMint(0, alice.address);
+      await c.adminMint(0, alice.address);
+      await expect(c.adminMint(0, alice.address)).to.be.revertedWithCustomError(c, "SoldOut");
+    });
+
+    it("non-owner cannot adminMint", async () => {
+      const c = await deployWithEvent();
+      const [, alice, bob] = await ethers.getSigners();
+      await expect(c.connect(alice).adminMint(0, bob.address)).to.be.revertedWithCustomError(
+        c,
+        "OwnableUnauthorizedAccount"
+      );
+    });
+
+    it("rejects zero-address recipient", async () => {
+      const c = await deployWithEvent();
+      await expect(c.adminMint(0, ethers.ZeroAddress)).to.be.revertedWithCustomError(
+        c,
+        "InvalidRecipient"
+      );
+    });
+
+    it("rejects unknown event", async () => {
+      const c = await deployWithEvent();
+      const [, alice] = await ethers.getSigners();
+      await expect(c.adminMint(99, alice.address)).to.be.revertedWithCustomError(c, "EventNotFound");
+    });
+  });
+
   describe("primary sale (buyTicket)", () => {
     it("mints an NFT to the buyer with sequential seat numbers and correct tokenURI", async () => {
       const c = await deployWithEvent();

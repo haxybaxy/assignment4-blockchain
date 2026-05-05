@@ -40,10 +40,10 @@ npx hardhat test                                    # 11 passing
 # Exercise 3 — local tests
 cd ../exercise-3
 npm install
-npx hardhat test                                    # 18 passing
+npx hardhat test                                    # 24 passing
 ```
 
-Total: **42 contract tests** across the three exercises, all passing on the in-memory Hardhat network.
+Total: **48 contract tests** across the three exercises, all passing on the in-memory Hardhat network.
 
 To run the Flask UIs locally (each in its own terminal pair):
 

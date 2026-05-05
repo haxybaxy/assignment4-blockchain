@@ -114,6 +114,7 @@ contract EventTickets721 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable 
     error NotApproved(uint256 tokenId);
     error PriceTooHigh(uint256 requested, uint256 max);
     error CannotBuyOwnTicket();
+    error InvalidRecipient();
     error NothingToWithdraw();
     error TransferFailed();
 
@@ -155,6 +156,30 @@ contract EventTickets721 is ERC721, ERC721Enumerable, ERC721URIStorage, Ownable 
         EventInfo storage e = _requireEvent(eventId);
         e.active = active;
         emit EventStatusChanged(eventId, active);
+    }
+
+    /// @notice Admin-mint: gift a ticket to `to` without payment. Useful for
+    ///         press, comps, and giveaways. Counts against the event's
+    ///         maxSupply just like a paid mint, so the venue capacity is
+    ///         respected. Active flag is ignored — admin can mint before sales
+    ///         open. Emits TicketMinted with pricePaid = 0 so listeners can
+    ///         distinguish gifted tickets from purchased ones.
+    function adminMint(uint256 eventId, address to) external onlyOwner returns (uint256 tokenId) {
+        if (to == address(0)) revert InvalidRecipient();
+        EventInfo storage e = _requireEvent(eventId);
+        if (e.sold >= e.maxSupply) revert SoldOut(eventId);
+
+        tokenId = _nextTokenId++;
+        uint256 seat = e.sold + 1;
+        e.sold += 1;
+        ticketEventOf[tokenId] = eventId;
+        originalPriceOf[tokenId] = e.pricePerTicket;
+        seatNumberOf[tokenId] = seat;
+
+        _safeMint(to, tokenId);
+        _setTokenURI(tokenId, string.concat(e.baseURI, tokenId.toString(), ".json"));
+
+        emit TicketMinted(tokenId, eventId, to, seat, 0);
     }
 
     /// @notice Withdraw protocol fees (and any stray ETH) to the owner.

@@ -213,6 +213,13 @@ class TicketClient:
             sender,
         )
 
+    def admin_mint(self, sender_addr: str, event_id: int, to: str) -> dict:
+        sender = self.account_by_address(sender_addr)
+        return self._send(
+            self.contract.functions.adminMint(event_id, Web3.to_checksum_address(to)),
+            sender,
+        )
+
     def withdraw(self, sender_addr: str) -> dict:
         sender = self.account_by_address(sender_addr)
         return self._send(self.contract.functions.withdraw(), sender)
